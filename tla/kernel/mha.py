@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import torch
+from torch import nn 
 from torch.nn import functional as F
 import tilelang as tl
 import tilelang.language as T
@@ -266,7 +267,7 @@ class _MHA_attention(torch.autograd.Function):
 MHA_attention = _MHA_attention.apply
 
 
-class MHAKernel:
+class MHAKernel(nn.Module):
 
     def __init__(self,
                  batch_size,
@@ -295,11 +296,11 @@ class MHAKernel:
     def forward(self, q, k, v):  # Layout: BSHD
         return self.attention(q, k, v, self.causal)
 
-    def ref_program(self, q, k, v, is_causal: bool):
+    def ref_program(self, q, k, v):
         dim = q.size(-1)
         scores = torch.einsum('bqhd,bkhd->bhqk', q, k)
         scores = scores / torch.sqrt(torch.tensor(dim, dtype=scores.dtype))
-        if is_causal:
+        if self.causal:
             seq_len = q.size(1)
             mask = torch.tril(torch.ones(seq_len, seq_len, device=scores.device))
             mask = mask.unsqueeze(0).unsqueeze(0)
@@ -330,7 +331,7 @@ class MHAKernel:
         dq, q.grad = q.grad.clone(), None
         dk, k.grad = k.grad.clone(), None
         dv, v.grad = v.grad.clone(), None
-        o_ref = self.ref_program(q, k, v, self.causal)
+        o_ref = self.ref_program(q, k, v)
         o_ref.backward(do)
         dq_ref, dk_ref, dv_ref = q.grad.clone(), k.grad.clone(), v.grad.clone()
         assert torch.allclose(o, o_ref, rtol=1e-2, atol=1e-2), "o does not match reference"
