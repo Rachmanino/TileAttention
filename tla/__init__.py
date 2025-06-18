@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 from .kernel.mha import MHAKernel
+from .kernel.mha_infer import MHAInferenceKernel
 from .kernel.mla import MLAKernel
 from .kernel.gqa import GQAKernel
 from .kernel.mamba_chunk_scan import MambaChunkScanKernel
@@ -10,6 +11,6 @@ from .kernel.blocksparse_attention import BlockSparseAttentionKernel
 from .kernel.linear_attention.fused_chunk import LinearAttentionFusedChunkKernel
 
 __all__ = [
-    "MHAKernel", "MLAKernel", "GQAKernel", "MambaChunkScanKernel", "MambaChunkStateKernel",
+    "MHAKernel", "MHAInferenceKernel", "MLAKernel", "GQAKernel", "MambaChunkScanKernel", "MambaChunkStateKernel",
     "BlockSparseAttentionKernel", "LinearAttentionFusedChunkKernel"
 ]
